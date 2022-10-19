@@ -133,7 +133,6 @@ public class ChatroomsFragment extends Fragment implements View.OnClickListener,
 
         // TODO request the activity to add the chatroom to the database
 
-
         chatroomName.setText("");
     }
 
@@ -142,7 +141,6 @@ public class ChatroomsFragment extends Fragment implements View.OnClickListener,
         Log.d(TAG, "Click on chatroom at position "+position);
         setActivatedPosition(position);
         // TODO ask the activity to respond to the selection (in single-pane layout, it will push detail fragment)
-
     }
 
     @Override

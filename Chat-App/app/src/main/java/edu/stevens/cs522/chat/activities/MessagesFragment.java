@@ -28,6 +28,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import edu.stevens.cs522.chat.R;
@@ -116,7 +117,7 @@ public class MessagesFragment extends Fragment implements OnClickListener {
 
         // Rely on live data to requery the messages if the chatroom selection changes
         queryMessages(sharedViewModel.getSelected());
-        sharedViewModel.observe(this, this::queryMessages);
+        sharedViewModel.observe(getViewLifecycleOwner(), this::queryMessages);
     }
 
     private void queryMessages(Chatroom chatroom) {
@@ -153,7 +154,9 @@ public class MessagesFragment extends Fragment implements OnClickListener {
      * Callback for the NEXT button.
      */
     public void onClick(View v) {
-        listener.sendMessageDialog(sharedViewModel.getSelected());
+        Chatroom currentChatroom = sharedViewModel.getSelected();
+        if (currentChatroom != null) {
+            listener.sendMessageDialog(currentChatroom);
+        }
     }
-
 }

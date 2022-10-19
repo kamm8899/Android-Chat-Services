@@ -12,8 +12,7 @@ import java.util.Date;
 
 public interface IChatService {
 
-    public void send(InetAddress destAddress, int destPort,
-                     String chatRoom, String message,
+    public void send(String destAddress, String chatRoom, String message,
                      Date timestamp, double latitude, double longitude,
                      ResultReceiver receiver);
 

@@ -48,7 +48,11 @@ import edu.stevens.cs522.chat.viewmodels.SharedViewModel;
 
 public class ChatActivity extends AppCompatActivity implements ChatroomsFragment.IChatroomListener, MessagesFragment.IChatListener, SendMessage.IMessageSender, ServiceConnection, ResultReceiverWrapper.IReceive {
 
-	final static public String TAG = ChatActivity.class.getCanonicalName();
+    /*
+     * We are using AppCompat to support Floating Action Button.
+     */
+
+    final static public String TAG = ChatActivity.class.getCanonicalName();
 
     /*
      * Fragments for two-pane UI
@@ -80,7 +84,7 @@ public class ChatActivity extends AppCompatActivity implements ChatroomsFragment
     private ResultReceiverWrapper sendResultReceiver;
 
     /*
-     * Executor thread for adding a chatroom.
+     * For inserting a chatroom.
      */
     private final Executor executor = Executors.newSingleThreadExecutor();
 
@@ -109,9 +113,7 @@ public class ChatActivity extends AppCompatActivity implements ChatroomsFragment
 
         // TODO get shared view model for current chatroom
 
-
         // TODO initialize sendResultReceiver (for receiving notification of message sent)
-
 
         // TODO initiate binding to the service
 
@@ -129,14 +131,12 @@ public class ChatActivity extends AppCompatActivity implements ChatroomsFragment
 	public void onResume() {
         super.onResume();
         // TODO register result receiver
-
     }
 
     @Override
     public void onPause() {
         super.onPause();
         // TODO unregister result receiver
-
     }
 
     @Override
@@ -148,7 +148,7 @@ public class ChatActivity extends AppCompatActivity implements ChatroomsFragment
     public void onDestroy() {
         super.onDestroy();
         // TODO unbind the service
-
+        unbindService(this);
     }
 
     @Override
@@ -183,8 +183,8 @@ public class ChatActivity extends AppCompatActivity implements ChatroomsFragment
     public boolean onOptionsItemSelected(MenuItem item) {
         super.onOptionsItemSelected(item);
         int itemId = item.getItemId();
-        if (itemId == R.id.register) {
 
+        if (itemId == R.id.register) {
             Intent intent = new Intent(this, RegisterActivity.class);
             startActivity(intent);
             return true;
@@ -192,7 +192,7 @@ public class ChatActivity extends AppCompatActivity implements ChatroomsFragment
         } else if (itemId == R.id.peers) {
             // TODO PEERS: provide the UI for viewing list of peers
 
-
+            return true;
 
         }
         return false;
@@ -220,7 +220,7 @@ public class ChatActivity extends AppCompatActivity implements ChatroomsFragment
     /*
      * Callback for the dialog to send a message.
      */
-    public void send(String destAddrString, int destPort, String chatroomName, String clientName, String text) {
+    public void send(String destinationAddr, String chatroomName, String clientName, String text) {
 
         if (chatService != null) {
             /*
@@ -228,8 +228,6 @@ public class ChatActivity extends AppCompatActivity implements ChatroomsFragment
              * (an AVD alias for) the host loopback interface, with the server
              * port on the host redirected to the server port on the server AVD.
              */
-
-            InetAddress destAddr = InetAddressUtils.fromString(destAddrString);
 
             Date timestamp = DateUtils.now();
 
@@ -289,7 +287,6 @@ public class ChatActivity extends AppCompatActivity implements ChatroomsFragment
     public void onServiceConnected(ComponentName name, IBinder service) {
         Log.d(TAG, "Connected to the chat service.");
         // TODO initialize chatService
-
     }
 
     @Override

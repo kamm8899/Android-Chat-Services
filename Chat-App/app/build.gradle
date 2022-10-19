@@ -1,11 +1,11 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 32
+    compileSdkVersion 33
     defaultConfig {
         applicationId "edu.stevens.cs522.chat"
         minSdkVersion 26
-        targetSdkVersion 32
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
 
@@ -26,6 +26,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    namespace 'edu.stevens.cs522.chat'
 }
 
 dependencies {
@@ -35,14 +36,13 @@ dependencies {
     implementation "androidx.recyclerview:recyclerview-selection:1.1.0"
 
     // Dependencies for preferences
-    implementation "androidx.preference:preference:1.1.1"
+    implementation "androidx.preference:preference:1.2.0"
 
     // Dependencies for fragments (need FragmentActivity for LifeCycleOwner)
-    implementation "androidx.fragment:fragment:1.4.0"
+    implementation "androidx.fragment:fragment:1.5.3"
 
     // Dependencies for LifeCycle, ViewModel, LiveData
-    def lifecycle_version = "2.4.0"
-    def arch_version = "2.1.0"
+    def lifecycle_version = "2.5.1"
     // ViewModel
     implementation "androidx.lifecycle:lifecycle-viewmodel:$lifecycle_version"
     // LiveData
@@ -63,7 +63,7 @@ dependencies {
 
 
     // Dependencies for the Room ORM
-    def room_version = "2.4.0"
+    def room_version = "2.4.3"
     implementation "androidx.room:room-runtime:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
 
@@ -81,5 +81,5 @@ dependencies {
     // androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
     // Material design (floating action button)
-    implementation 'com.google.android.material:material:1.4.0'
+    implementation 'com.google.android.material:material:1.6.1'
 }

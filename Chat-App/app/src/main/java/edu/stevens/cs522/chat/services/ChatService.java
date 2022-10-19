@@ -7,8 +7,10 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.Process;
 import android.os.ResultReceiver;
 import android.util.JsonReader;
 import android.util.JsonWriter;
@@ -17,12 +19,14 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Date;
 
-import edu.stevens.cs522.base.DatagramSendReceive;
+import edu.stevens.cs522.base.Datagram;
+import edu.stevens.cs522.base.DatagramConnectionFactory;
+import edu.stevens.cs522.base.IDatagramConnection;
+import edu.stevens.cs522.base.InetAddressUtils;
 import edu.stevens.cs522.chat.R;
 import edu.stevens.cs522.chat.databases.ChatDatabase;
 import edu.stevens.cs522.chat.entities.Chatroom;
@@ -57,7 +61,7 @@ public class ChatService extends Service implements IChatService {
 
     protected Thread receiveThread;
 
-    protected DatagramSendReceive chatSocket;
+    protected IDatagramConnection chatConnection;
 
     protected boolean socketOK = true;
 
@@ -76,7 +80,8 @@ public class ChatService extends Service implements IChatService {
         chatDatabase = ChatDatabase.getInstance(this);
 
         try {
-            chatSocket = new DatagramSendReceive(chatPort);
+            DatagramConnectionFactory factory = new DatagramConnectionFactory();
+            chatConnection = factory.getUdpConnection(chatPort);
         } catch (Exception e) {
             throw new IllegalStateException("Unable to init client socket.", e);
         }
@@ -95,7 +100,7 @@ public class ChatService extends Service implements IChatService {
         sendHandler.getLooper().getThread().interrupt();  // No-op?
         sendHandler.getLooper().quit();
         receiveThread.interrupt();
-        chatSocket.close();
+        chatConnection.close();
 
         chatDatabase = null;
     }
@@ -114,8 +119,7 @@ public class ChatService extends Service implements IChatService {
     }
 
     @Override
-    public void send(InetAddress destAddress, int destPort,
-                     String chatRoom, String messageText,
+    public void send(String destAddress, String chatRoom, String messageText,
                      Date timestamp, double latitude, double longitude, ResultReceiver receiver) {
         android.os.Message message = sendHandler.obtainMessage();
         // TODO send the message to the sending thread (add a bundle with params)
@@ -132,7 +136,6 @@ public class ChatService extends Service implements IChatService {
         public static final String HDLR_LONGITUDE = "edu.stevens.cs522.chat.services.extra.LONGITUDE";
 
         public static final String HDLR_DEST_ADDRESS = "edu.stevens.cs522.chat.services.extra.DEST_ADDRESS";
-        public static final String HDLR_DEST_PORT = "edu.stevens.cs522.chat.services.extra.DEST_PORT";
         public static final String HDLR_RECEIVER = "edu.stevens.cs522.chat.services.extra.RECEIVER";
 
         public SendHandler(Looper looper) {
@@ -144,9 +147,7 @@ public class ChatService extends Service implements IChatService {
 
             try {
 
-                InetAddress destAddr = null;
-
-                int destPort = -1;
+                String destinationAddr = null;
 
                 String senderName = null;
 
@@ -184,8 +185,6 @@ public class ChatService extends Service implements IChatService {
                 // Okay to do this synchronously because we are on a background thread.
                 chatDatabase.messageDao().persist(mesg);
 
-                Log.d(TAG, String.format("Sending data from address %s:%d", chatSocket.getInetAddress(), chatSocket.getPort()));
-
                 StringWriter output = new StringWriter();
                 JsonWriter wr = new JsonWriter(output);
                 wr.beginObject();
@@ -199,13 +198,13 @@ public class ChatService extends Service implements IChatService {
 
                 String content = output.toString();
 
-                byte[] sendData = content.getBytes();  // Default encoding is UTF-8
+                Log.d(TAG, "Sending data: " + content);
 
-                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, destAddr, destPort);
+                Datagram sendPacket = new Datagram();
+                sendPacket.setAddress(destinationAddr);
+                sendPacket.setData(content);
 
-                chatSocket.send(sendPacket);
-
-                Log.i(TAG, "Sent content: " + content);
+                chatConnection.send(getApplicationContext(), sendPacket);
 
                 receiver.send(RESULT_OK, null);
 
@@ -223,8 +222,7 @@ public class ChatService extends Service implements IChatService {
 
         public void run() {
 
-            byte[] receiveData = new byte[1024];
-            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+            Datagram receivePacket = new Datagram();
 
             while (!finished && socketOK) {
 
@@ -247,47 +245,46 @@ public class ChatService extends Service implements IChatService {
                      * messages can arrive empty, we loop as a workaround.
                      */
 
-                    while (sender == null) {
+                    chatConnection.receive(receivePacket);
+                    Log.d(TAG, "Received a packet");
 
-                        chatSocket.receive(receivePacket);
-                        Log.d(TAG, "Received a packet");
-
-                        InetAddress address = receivePacket.getAddress();
-                        int port = receivePacket.getPort();
-                        Log.d(TAG, "Source IP Address: " + address + " , Port: " + port);
-
-                        String content = new String(receivePacket.getData(), 0, receivePacket.getLength());
-                        Log.d(TAG, "Message received: " + content);
-
-                        /*
-                         * Parse the JSON object
-                         */
-                        JsonReader rd = new JsonReader(new StringReader(content));
-
-                        rd.beginObject();
-                        if (SENDER_NAME.equals(rd.nextName())) {
-                            sender = rd.nextString();
-                        }
-                        if (CHATROOM.equals(rd.nextName())) {
-                            room = rd.nextString();
-                        }
-                        if (MESSAGE_TEXT.equals((rd.nextName()))) {
-                            text = rd.nextString();
-                        }
-                        if (TIMESTAMP.equals(rd.nextName())) {
-                            timestamp = new Date(rd.nextLong());
-                        }
-                        if (LATITUDE.equals(rd.nextName())) {
-                            latitude = rd.nextDouble();
-                        }
-                        if (LONGITUDE.equals((rd.nextName()))) {
-                            longitude = rd.nextDouble();
-                        }
-                        rd.endObject();
-
-                        rd.close();
-
+                    if (receivePacket.getData() == null) {
+                        Log.d(TAG, "....missing data, skipping....");
+                        continue;
                     }
+
+                    Log.d(TAG, "Source Address: " + receivePacket.getAddress());
+
+                    String content = receivePacket.getData();
+                    Log.d(TAG, "Message received: " + content);
+
+                    /*
+                     * Parse the JSON object
+                     */
+                    JsonReader rd = new JsonReader(new StringReader(content));
+
+                    rd.beginObject();
+                    if (SENDER_NAME.equals(rd.nextName())) {
+                        sender = rd.nextString();
+                    }
+                    if (CHATROOM.equals(rd.nextName())) {
+                        room = rd.nextString();
+                    }
+                    if (MESSAGE_TEXT.equals((rd.nextName()))) {
+                        text = rd.nextString();
+                    }
+                    if (TIMESTAMP.equals(rd.nextName())) {
+                        timestamp = new Date(rd.nextLong());
+                    }
+                    if (LATITUDE.equals(rd.nextName())) {
+                        latitude = rd.nextDouble();
+                    }
+                    if (LONGITUDE.equals((rd.nextName()))) {
+                        longitude = rd.nextDouble();
+                    }
+                    rd.endObject();
+
+                    rd.close();
 
                     /*
                      * Add the sender to our list of senders

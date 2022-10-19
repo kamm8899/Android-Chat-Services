@@ -19,7 +19,6 @@ import edu.stevens.cs522.chat.entities.Peer;
  */
 
 // TODO Add annotations (including @TypeConverters)
-
 public abstract class ChatDatabase extends RoomDatabase {
 
     private static final String DATABASE_NAME = "messages.db";
@@ -34,7 +33,7 @@ public abstract class ChatDatabase extends RoomDatabase {
 
     public static ChatDatabase getInstance(Context context) {
         if (instance == null) {
-            instance = Room.databaseBuilder(context, ChatDatabase.class, DATABASE_NAME).build();
+            instance = Room.databaseBuilder(context, ChatDatabase.class, DATABASE_NAME).allowMainThreadQueries().build();
         }
         return instance;
     }

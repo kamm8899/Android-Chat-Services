@@ -19,7 +19,7 @@ import java.util.List;
 import edu.stevens.cs522.chat.R;
 import edu.stevens.cs522.chat.entities.Message;
 import edu.stevens.cs522.chat.entities.Peer;
-import edu.stevens.cs522.chat.ui.TextAdapter;
+import edu.stevens.cs522.chat.ui.MessageChatroomAdapter;
 import edu.stevens.cs522.chat.viewmodels.PeerViewModel;
 
 /**
@@ -32,7 +32,7 @@ public class ViewPeerActivity extends FragmentActivity {
 
     public static final String PEER_KEY = "peer";
 
-    private TextAdapter<Message> messagesAdapter;
+    private MessageChatroomAdapter messagesAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,14 +52,13 @@ public class ViewPeerActivity extends FragmentActivity {
         RecyclerView messageList = findViewById(R.id.message_list);
         messageList.setLayoutManager(new LinearLayoutManager(this));
 
-        messagesAdapter = new TextAdapter<>(messageList);
+        messagesAdapter = new MessageChatroomAdapter();
         messageList.setAdapter(messagesAdapter);
 
         // TODO open the view model
 
         // TODO query the database asynchronously, and use messagesAdapter to display the result
 
-        ;
 
 
     }

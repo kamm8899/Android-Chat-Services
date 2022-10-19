@@ -17,14 +17,12 @@ import edu.stevens.cs522.chat.entities.Peer;
  *
  * We will continue to allow insertion to be done on main thread for noew.
  */
-
 public abstract class PeerDao {
 
     /**
      * Get all peers in the database.
      * @return
      */
-
     public abstract LiveData<List<Peer>> fetchAllPeers();
 
     /**
@@ -32,7 +30,6 @@ public abstract class PeerDao {
      * @param name
      * @return
      */
-
     protected abstract long getPeerId(String name);
 
     /**
@@ -40,14 +37,12 @@ public abstract class PeerDao {
      * @param peer
      * @return
      */
-
     public abstract long insert(Peer peer);
 
     /**
      * Update the metadata for a peer (GPS coordinates, last seen)
      * @param peer
      */
-
     protected abstract void update(Peer peer);
 
     @Transaction

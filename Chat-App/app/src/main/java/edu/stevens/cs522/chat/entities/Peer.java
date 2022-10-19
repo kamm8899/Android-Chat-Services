@@ -19,10 +19,8 @@ import edu.stevens.cs522.base.InetAddressUtils;
  */
 
 // TODO annotate (must define a unique index on name for FK reference in Message)
-
 public class Peer implements Parcelable {
 
-    // TODO
     public long id;
 
     public String name;

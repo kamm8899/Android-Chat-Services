@@ -33,8 +33,7 @@ public class SendMessage extends DialogFragment {
     public static final String CHATROOM_KEY = "chatroom";
 
     public interface IMessageSender {
-        void send(String destinationHost,
-                  int destinationPort,
+        void send(String destinationAddr,
                   String chatroom,
                   String chatname,
                   String text);
@@ -58,9 +57,7 @@ public class SendMessage extends DialogFragment {
     /*
      * Widgets for dest address, message text, send button.
      */
-    private EditText destinationHost;
-
-    private EditText destinationPort;
+    private EditText destinationAddr;
 
     private EditText messageText;
 
@@ -124,15 +121,9 @@ public class SendMessage extends DialogFragment {
             Log.d(TAG, "Confirming message send...");
             Context context = requireActivity();
 
-            if (isEmptyInput(destinationHost.getText())) {
-                Log.d(TAG, "...missing destination host.");
-                Toast.makeText(context, R.string.missing_destination_host, Toast.LENGTH_LONG).show();
-                return;
-            }
-
-            if (isEmptyInput(destinationPort.getText())) {
-                Log.d(TAG, "...missing destination port.");
-                Toast.makeText(context, R.string.missing_destination_port, Toast.LENGTH_LONG).show();
+            if (isEmptyInput(destinationAddr.getText())) {
+                Log.d(TAG, "...missing destination address.");
+                Toast.makeText(context, R.string.missing_destination_addr, Toast.LENGTH_LONG).show();
                 return;
             }
 
@@ -142,8 +133,7 @@ public class SendMessage extends DialogFragment {
                 return;
             }
 
-            String destAddrString = destinationHost.getText().toString();
-            int destPort = Integer.parseInt(destinationPort.getText().toString());
+            String destAddrString = destinationAddr.getText().toString();
             String clientName = Settings.getSenderName(context);
             String message = messageText.getText().toString();
             Log.d(TAG, String.format("...sending \"%s\" to %s as %s....", message, chatroom, clientName));

@@ -14,41 +14,17 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.5"
-            android:text="@string/destination_host" />
+            android:text="@string/destination_addr" />
 
         <EditText
-            android:id="@+id/destination_host"
+            android:id="@+id/destination_addr"
             style="@style/textNormal"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.5"
             android:inputType="text"
             android:singleLine="true"
-            android:text="@string/destination_host_default" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            style="@style/textNormal"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.5"
-            android:text="@string/destination_port" />
-
-        <EditText
-            android:id="@+id/destination_port"
-            style="@style/textNormal"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.5"
-            android:inputType="text"
-            android:singleLine="true"
-            android:text="@string/destination_port_default" />
+            android:hint="@string/destination_addr_hint" />
 
     </LinearLayout>
 
